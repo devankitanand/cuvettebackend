@@ -6,7 +6,12 @@ const router = express.Router();
 
 router.use(viewController.alerts);
 
-router.get("/", authController.isLoggedIn, viewController.getOverview);
+router.get(
+  "/",
+  authController.protect,
+  authController.isLoggedIn,
+  viewController.getOverview
+);
 
 router.get("/login", authController.isLoggedIn, viewController.getLoginForm);
 router.get("/signup", authController.isLoggedIn, viewController.getSignupForm);
