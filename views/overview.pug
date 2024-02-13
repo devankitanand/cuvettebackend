@@ -1,0 +1,22 @@
+extends base
+
+block content
+  main.main(style='display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh;')
+    .form-container(style='width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center;')
+      form.form.form-imageForm(style='width: 100%; padding: 20px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); border-radius: 5px;')
+        
+        .form__group.form__photo-upload
+          input.form__upload(type='file', accept='image/*', id='imageArray', name='imageArray' multiple)
+          label(for='imageArray') Choose new photo
+          
+        .form__group.right(style='text-align: center; margin-top: 10px;')
+          button.btn.btn--small.btn--green.btn--upload-photos Upload Photos!
+    br
+    br
+    h2.heading-secondary Your Photos
+    .card-container(style='display: flex; flex-wrap: wrap;justify-content: space-around; width: 100%; padding: 20px;')
+      each image in images
+        .card(style='width: calc(33.333% - 20px); margin: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); border-radius: 5px;')
+          
+          img(src=`${image}`, alt='' style='width: 100%; height: 100%; border-top-left-radius: 5px; border-top-right-radius: 5px;')
+          h3.heading-tertiary
