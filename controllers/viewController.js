@@ -6,7 +6,11 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
 exports.getOverview = catchAsync(async (req, res, next) => {
-  res.redirect("/my-images");
+  if (req.user) {
+    res.redirect("/my-images");
+  } else {
+    res.redirect("/login");
+  }
 });
 
 exports.getAccount = catchAsync(async (req, res, next) => {
