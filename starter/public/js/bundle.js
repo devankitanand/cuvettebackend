@@ -12122,6 +12122,7 @@ var logout = /*#__PURE__*/function () {
             res = _context2.sent;
             if (res.data.status === 'success') {
               location.reload(true);
+              location.assign('/login');
             }
             _context2.next = 10;
             break;
@@ -27885,7 +27886,7 @@ var updateSettings = /*#__PURE__*/function () {
 }();
 exports.updateSettings = updateSettings;
 var uploadPhotos = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(data, type) {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(data) {
     var res;
     return _regeneratorRuntime().wrap(function _callee2$(_context2) {
       while (1) {
@@ -27895,28 +27896,30 @@ var uploadPhotos = /*#__PURE__*/function () {
             _context2.next = 3;
             return (0, _axios.default)({
               method: 'POST',
+              url: '/api/v1/users/postFilesUpload',
               data: data
             });
           case 3:
             res = _context2.sent;
-            console.log(res);
-            if (res.data.status === '200') {
+            console.log('sasaxasx');
+            if (res) {
               (0, _alerts.showAlert)('success', "Photo Uploaded Successfully");
             }
-            _context2.next = 11;
+            _context2.next = 12;
             break;
           case 8:
             _context2.prev = 8;
             _context2.t0 = _context2["catch"](0);
-            (0, _alerts.showAlert)('error', _context2.t0.response.data.message);
-          case 11:
+            alert(_context2.t0);
+            (0, _alerts.showAlert)('error', _context2.t0);
+          case 12:
           case "end":
             return _context2.stop();
         }
       }
     }, _callee2, null, [[0, 8]]);
   }));
-  return function uploadPhotos(_x3, _x4) {
+  return function uploadPhotos(_x3) {
     return _ref2.apply(this, arguments);
   };
 }();
@@ -28332,7 +28335,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50675" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49921" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
   },
 
   photos: [{ type: String, default: "default.jpg" }],
+  photo: { type: String, default: "default.jpg" },
   image: {
     type: Array,
   },

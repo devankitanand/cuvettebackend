@@ -35,7 +35,7 @@ exports.uploadPostFilesArray = [
 ];
 
 exports.postFilesUpload = catchAsync(async (req, res, next) => {
-  console.log(req.files);
+  console.log(req.user);
 
   let files = [];
   let images = [];
@@ -47,7 +47,7 @@ exports.postFilesUpload = catchAsync(async (req, res, next) => {
     }
   }
 
-  const user = await User.findOne(req.user);
+  const user = await User.findById(req.user._id);
   for (const uploadedImage of images) {
     user.image.unshift(uploadedImage);
   }

@@ -25,18 +25,20 @@ export const updateSettings = async (data, type) => {
   }
 };
 
-export const uploadPhotos = async (data, type) => {
+export const uploadPhotos = async (data) => {
   try {
     const res = await axios({
       method: 'POST',
+      url: '/api/v1/users/postFilesUpload',
       data,
     });
+    console.log('sasaxasx');
 
-    console.log(res);
-    if (res.data.status === '200') {
+    if (res) {
       showAlert('success', `Photo Uploaded Successfully`);
     }
   } catch (err) {
-    showAlert('error', err.response.data.message);
+    alert(err);
+    showAlert('error', err);
   }
 };

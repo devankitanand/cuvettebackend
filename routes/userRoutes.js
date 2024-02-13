@@ -10,11 +10,11 @@ router.get("/logout", authController.logout);
 router.route("/forgotPassword").post(authController.forgotPassword);
 router.route("/resetPassword/:token").patch(authController.resetPassword);
 
+router.use(authController.protect);
+
 router
   .route("/postFilesUpload")
   .post(userController.uploadPostFilesArray, userController.postFilesUpload);
-
-router.use(authController.protect);
 
 router
   .route("/updateMe")
