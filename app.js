@@ -67,6 +67,7 @@ app.use(xss());
 app.use(
   helmet({
     contentSecurityPolicy: false,
+    crossOriginResourcePolicy: false
   })
 );
 
