@@ -127,7 +127,7 @@ function generateOTP() {
   return crypto.randomInt(100000, 999999).toString();
 }
 
-app.post("/send-otp", async (req, res) => {
+app.post("/api/v1/auth/send-otp", async (req, res) => {
   const { method, destination } = req.body;
   const otp = generateOTP();
   otpStore.set(destination, otp);
@@ -156,7 +156,7 @@ app.post("/send-otp", async (req, res) => {
   }
 });
 
-app.post("/verify-otp", (req, res) => {
+app.post("/api/v1/auth/verify-otp", (req, res) => {
   const { destination, otp } = req.body;
   const storedOTP = otpStore.get(destination);
 
