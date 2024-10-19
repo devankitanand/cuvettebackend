@@ -11,19 +11,7 @@ router.route("/forgotPassword").post(authController.forgotPassword);
 router.route("/resetPassword/:token").patch(authController.resetPassword);
 
 router.use(authController.protect);
-
-router
-  .route("/postFilesUpload")
-  .post(userController.uploadPostFilesArray, userController.postFilesUpload);
-
-router
-  .route("/updateMe")
-  .patch(
-    authController.protect,
-    userController.uploadUserPhoto,
-    userController.resizeUserPhoto,
-    userController.updateMe
-  );
+router.route("/createInterview").post(userController.createInterview);
 
 router.delete("/deleteMe", userController.deleteMe);
 

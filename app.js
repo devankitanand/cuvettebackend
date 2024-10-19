@@ -1,6 +1,9 @@
 const path = require("path");
 const express = require("express");
 const app = express();
+const nodemailer = require("nodemailer");
+const twilio = require("twilio");
+const crypto = require("crypto");
 const fs = require("fs");
 const morgan = require("morgan");
 const globalErrorHandler = require("./controllers/errorController");
@@ -11,8 +14,9 @@ const xss = require("xss-clean");
 const hpp = require("hpp");
 const port = 3000;
 const compression = require("compression");
-const viewRouter = require("./routes/viewRoutes.js");
+// const viewRouter = require("./routes/viewRoutes.js");
 const cookieParser = require("cookie-parser");
+
 // const tourRouter = require("./routes/tourRoutes.js");
 const userRouter = require("./routes/userRoutes.js");
 // const reviewRouter = require("./routes/reviewRoutes.js");
@@ -29,7 +33,7 @@ app.set("views", path.join(__dirname, "views"));
 //Implementing CORS
 app.use(
   cors({
-    origin: "http://localhost:8000",
+    origin: "*",
   })
 );
 //app.use(cors({
@@ -99,18 +103,70 @@ app.use((req, res, next) => {
   next();
 });
 
-// app.post("/", (req, res) => {
-//   res.status(404).send("Hello from the server side ");
-// });
+const otpStore = new Map();
 
-// app.get("/api/v1/tours/:id", getTour);
+// Nodemailer transporter setup
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "amolverma.246@gmail.com",
+    pass: "xtrj rsnm guky eqmg",
+  },
+});
 
-// app.patch("/api/v1/tours/:id", updateTour);
+// Twilio client setup
+const twilioClient = twilio(
+  "AC8b7285462ef3aae28747e56a1089e78f",
+  "8b6bdb5ef0f12b657485fc46ca5bb63b"
+);
 
-// app.delete("/api/v1/tours/:id", deleteTour);
+function generateOTP() {
+  return crypto.randomInt(100000, 999999).toString();
+}
+
+app.post("/send-otp", async (req, res) => {
+  const { method, destination } = req.body;
+  const otp = generateOTP();
+  otpStore.set(destination, otp);
+
+  try {
+    if (method === "email") {
+      await transporter.sendMail({
+        from: "amolverma.246@gmail.com",
+        to: destination,
+        subject: "Your OTP",
+        text: `Your OTP is: ${otp}`,
+      });
+    } else if (method === "sms") {
+      await twilioClient.messages.create({
+        body: `Your OTP is: ${otp}`,
+        from: "+18585003413",
+        to: destination,
+      });
+    } else {
+      return res.status(400).json({ error: "Invalid method" });
+    }
+    res.json({ message: "OTP sent successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to send OTP" });
+  }
+});
+
+app.post("/verify-otp", (req, res) => {
+  const { destination, otp } = req.body;
+  const storedOTP = otpStore.get(destination);
+
+  if (storedOTP && storedOTP === otp) {
+    otpStore.delete(destination);
+    res.json({ message: "OTP verified successfully" });
+  } else {
+    res.status(400).json({ error: "Invalid OTP" });
+  }
+});
 
 // 3)ROUTES
-app.use("/", viewRouter);
+// app.use("/", viewRouter);
 
 // app.use("/api/v1/tours", tourRouter);
 app.use("/api/v1/users", userRouter);

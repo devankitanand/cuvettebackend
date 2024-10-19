@@ -32,6 +32,24 @@ const userSchema = new mongoose.Schema({
     minlength: 8,
     select: false,
   },
+  companyName: {
+    type: String,
+    required: [true, "Please provide a companyName"],
+    minlength: 8,
+    select: true,
+  },
+  companySize: {
+    type: String,
+    required: [false, "Please provide a size of company"],
+    minlength: 0,
+    select: true,
+  },
+  phone: {
+    type: String,
+    required: [false, "Please provide phone"],
+    minlength: 10,
+    select: true,
+  },
   active: {
     type: Boolean,
     default: true,

@@ -3,99 +3,7 @@ const sharp = require("sharp");
 const catchAsync = require("./../utils/catchAsync");
 const AppError = require("./../utils/appError");
 const factory = require("./handlerFactory");
-const aws = require("aws-sdk");
-const multer = require("multer");
-const multerS3 = require("multer-s3");
-
-const s3 = new aws.S3({
-  accessKeyId: process.env.S3_ACCESS_KEY,
-  secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-  region: process.env.S3_BUCKET_REGION,
-});
-
-const uploadToS3 = (bucketName) =>
-  multer({
-    storage: multerS3({
-      s3: s3,
-      bucket: bucketName,
-      metadata: function (req, file, cb) {
-        cb(null, { fieldName: file.fieldname });
-      },
-      key: function (req, file, cb) {
-        //Produce Dynamic File names here instead of image.jpeg
-        cb(null, `DingImages-${Date.now()}.${file.mimetype.split("/")[1]}`);
-      },
-      contentType: function (req, file, cb) {
-        cb(null, file.mimetype);
-      },
-    }),
-  });
-exports.uploadPostFilesArray = [
-  uploadToS3("acdpostpictures").array("postfiles", 5),
-];
-
-exports.postFilesUpload = catchAsync(async (req, res, next) => {
-  console.log(req.user);
-
-  let files = [];
-  let images = [];
-  for (const uploadedfile of req.files) {
-    if (uploadedfile.mimetype === "application/pdf") {
-      files.push(uploadedfile.location);
-    } else if (uploadedfile.mimetype.split("/")[0] === "image") {
-      images.push(uploadedfile.location);
-    }
-  }
-
-  const user = await User.findById(req.user._id);
-  for (const uploadedImage of images) {
-    user.image.unshift(uploadedImage);
-  }
-
-  user.save();
-
-  console.log(user);
-  // console.log(images, files);
-  res.status(200).json(user);
-  // res.status(200).json({ status: "success", data: { images, files } });
-});
-
-const multerStorage = multer.memoryStorage();
-
-const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image")) {
-    cb(null, true);
-  } else {
-    cb(new AppError("Not an image! Please upload only images.", 400), false);
-  }
-};
-
-const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
-
-exports.uploadUserPhoto = upload.single("photo");
-
-exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
-  if (!req.file) {
-    return next();
-  }
-  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
-  await sharp(req.file.buffer)
-    .resize(500, 500)
-    .toFormat("jpeg")
-    .jpeg({ quality: 90 })
-    .toFile(`starter/public/img/users/${req.file.filename}`);
-  next();
-});
-
-const filterObj = (obj, ...allowedFields) => {
-  const newObj = {};
-  Object.keys(obj).forEach((el) => {
-    if (allowedFields.includes(el)) {
-      newObj[el] = obj[el];
-    }
-  });
-  return newObj;
-};
+const nodemailer = require("nodemailer");
 
 exports.getAllUsers = factory.getAll(User);
 exports.updateMe = catchAsync(async (req, res, next) => {
@@ -136,6 +44,92 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   res.status(204).json({
     status: "success",
     data: null,
+  });
+});
+
+exports.createInterview = catchAsync(async (req, res, next) => {
+  // Create a transporter using SMTP
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "amolverma.246@gmail.com",
+      pass: "xtrj rsnm guky eqmg",
+    },
+  });
+
+  // Function to send interview invitations
+  async function sendInterviewInvitations(
+    jobTitle,
+    jobDescription,
+    experienceLevel,
+    candidateEmails,
+    endDate
+  ) {
+    // Email template
+    const emailTemplate = (candidateEmail) => ({
+      from: `"${req.user.companyName}" <InterNew@InterNew.com>`,
+      to: candidateEmail,
+      subject: `Interview Invitation: ${jobTitle} Position`,
+      html: `
+        <h2>Interview Invitation</h2>
+        <p>Dear Candidate,</p>
+        <p>We are pleased to invite you for an interview for the position of <strong>${jobTitle}</strong>.</p>
+        <h3>Job Details:</h3>
+        <ul>
+          <li><strong>Job Title:</strong> ${jobTitle}</li>
+          <li><strong>Experience Level:</strong> ${experienceLevel}</li>
+          <li><strong>Job Description:</strong> ${jobDescription}</li>
+        </ul>
+        <p><strong>Please note:</strong> This invitation is valid until ${endDate}. After this date, we may not be able to consider your application.</p>
+        <p>If you're interested in this opportunity, please reply to this email with your preferred date and time for the interview.</p>
+        <p>We look forward to speaking with you!</p>
+        <p>Best regards,<br>HR Team<br>${req.user.companyName}</p>
+      `,
+    });
+
+    const results = [];
+    // Send emails to all candidates
+    for (const email of candidateEmails) {
+      try {
+        const info = await transporter.sendMail(emailTemplate(email));
+        results.push({ email, status: "success", messageId: info.messageId });
+        console.log(`Email sent to ${email}: ${info.messageId}`);
+      } catch (error) {
+        results.push({ email, status: "failed", error: error.message });
+        console.error(`Failed to send email to ${email}:`, error);
+      }
+    }
+    return results;
+  }
+
+  var { jobTitle, jobDescription, experienceLevel, candidateEmails, endDate } =
+    req.body;
+
+  // Example usage (you should get these values from req.body in a real application)
+  jobTitle = jobTitle || "Senior Software Developer";
+  jobDescription =
+    jobDescription ||
+    "We are seeking an experienced software developer proficient in Node.js and React to join our dynamic team.";
+  experienceLevel = experienceLevel || "5+ years";
+  candidateEmails = candidateEmails || [
+    "devankitanand@gmail.com",
+    // "candidate2@example.com",
+    // "candidate3@example.com",
+  ];
+  endDate = endDate || "June 30, 2024";
+
+  const results = await sendInterviewInvitations(
+    jobTitle,
+    jobDescription,
+    experienceLevel,
+    candidateEmails,
+    endDate
+  );
+
+  res.status(200).json({
+    status: "success",
+    message: "Email sending process completed",
+    results: results,
   });
 });
 
